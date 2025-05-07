@@ -1,93 +1,71 @@
 import { Agent, AgentConfig, AgentResult, AgentMetrics, AgentStatus } from '../types/agent';
 
 export abstract class BaseAgent implements Agent {
-  protected config: AgentConfig;
-  protected running: boolean = false;
   protected metrics: AgentMetrics;
-  protected workers: Promise<void>[] = [];
+  protected status: AgentStatus;
+  protected readonly threadCount: number;
 
   constructor(config: AgentConfig) {
-    this.config = config;
+    this.threadCount = config.threadCount;
     this.metrics = {
-      startTime: new Date(),
       processedItems: 0,
-      errors: [],
-      status: 'idle'
+      errors: []
     };
+    this.status = AgentStatus.IDLE;
   }
 
-  abstract processItem(item: any): Promise<any>;
   abstract getItems(): Promise<any[]>;
+  abstract processItem(item: any): Promise<any>;
 
-  protected async worker(items: any[]): Promise<void> {
-    for (const item of items) {
-      if (!this.running) break;
-      
-      try {
-        await this.processItem(item);
-        this.metrics.processedItems++;
-      } catch (error) {
-        this.metrics.errors.push(error as Error);
-        if (this.metrics.errors.length >= this.config.maxRetries) {
-          throw error;
-        }
-      }
+  public getMetrics(): AgentMetrics {
+    return this.metrics;
+  }
+
+  public getStatus(): AgentStatus {
+    return this.status;
+  }
+
+  protected async processItems(items: any[]): Promise<void> {
+    const chunks = this.chunkArray(items, this.threadCount);
+    
+    for (const chunk of chunks) {
+      await Promise.all(chunk.map(item => this.processItem(item)));
     }
+  }
+
+  protected chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
   }
 
   public async execute(): Promise<AgentResult> {
     try {
-      this.running = true;
-      this.metrics.status = 'running';
-      this.metrics.startTime = new Date();
-
+      this.status = AgentStatus.RUNNING;
       const items = await this.getItems();
-      const itemsPerThread = Math.ceil(items.length / this.config.threadCount);
+      await this.processItems(items);
       
-      for (let i = 0; i < this.config.threadCount; i++) {
-        const start = i * itemsPerThread;
-        const end = Math.min(start + itemsPerThread, items.length);
-        const threadItems = items.slice(start, end);
-        
-        if (threadItems.length > 0) {
-          this.workers.push(this.worker(threadItems));
-        }
-      }
-
-      await Promise.all(this.workers);
-      
-      this.metrics.status = 'completed';
-      this.metrics.endTime = new Date();
-      
+      this.status = AgentStatus.STOPPED;
       return {
         success: true,
-        data: {
-          processedItems: this.metrics.processedItems,
-          errors: this.metrics.errors
-        }
+        data: this.metrics
       };
     } catch (error) {
-      this.metrics.status = 'failed';
-      this.metrics.endTime = new Date();
+      this.status = AgentStatus.ERROR;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.metrics.errors.push(err);
       
       return {
         success: false,
-        error: error as Error,
-        data: {
-          processedItems: this.metrics.processedItems,
-          errors: this.metrics.errors
-        }
+        error: err,
+        data: this.metrics
       };
-    } finally {
-      this.running = false;
     }
   }
 
-  public stop(): void {
-    this.running = false;
-  }
-
-  public isRunning(): boolean {
-    return this.running;
+  public async stop(): Promise<void> {
+    this.status = AgentStatus.STOPPED;
   }
 } 

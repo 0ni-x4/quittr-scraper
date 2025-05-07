@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "dist",
+    "noEmit": false,
+    "allowJs": true,
+    "esModuleInterop": true
+  },
+  "include": ["src/scripts/**/*", "src/subagents/**/*"],
+  "exclude": ["node_modules"]
+} 

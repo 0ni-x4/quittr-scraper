@@ -1,15 +1,14 @@
-module.exports = {
+export default {
   apps: [
     {
-      name: 'master-agent',
+      name: 'ai-influencer-agent',
       script: 'dist/masterAgent.js',
       instances: 1,
       exec_mode: 'fork',
       watch: false,
       max_memory_restart: '1G',
       env: {
-        NODE_ENV: 'production',
-        AGENT_ROLE: 'master'
+        NODE_ENV: 'production'
       }
     },
     {

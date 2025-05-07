@@ -1,5 +1,7 @@
 import { AgentConfig } from '../types/agent';
 import { BaseAgent } from './baseAgent';
+import OpenAI from 'openai';
+import { useSettingsStore } from '../stores/settingsStore';
 
 interface EvaluationTarget {
   url: string;
@@ -19,21 +21,15 @@ interface EvaluationResult {
 }
 
 export class EvaluatorAgent extends BaseAgent {
-  private evaluationQueue: EvaluationTarget[] = [
-    // Example evaluation target - replace with actual data from scraper
-    {
-      url: 'https://example.com',
-      platform: 'example',
-      content: 'Sample content about AI and technology',
-      metadata: {
-        followers: 1000,
-        engagement: 0.05
-      }
-    }
-  ];
+  private openai: OpenAI;
+  private evaluationQueue: EvaluationTarget[] = [];
 
   constructor(config: AgentConfig) {
     super(config);
+    const settings = useSettingsStore.getState().settings;
+    this.openai = new OpenAI({
+      apiKey: settings.openaiKey
+    });
   }
 
   async getItems(): Promise<EvaluationTarget[]> {
@@ -41,26 +37,73 @@ export class EvaluatorAgent extends BaseAgent {
     return this.evaluationQueue;
   }
 
-  async processItem(target: EvaluationTarget): Promise<EvaluationResult> {
-    // This is where you would implement the actual evaluation logic
-    console.log(`Evaluating content from ${target.url} on ${target.platform}`);
-    
-    // Mock evaluation logic - replace with actual AI evaluation
-    const score = Math.random() * 100;
-    const confidence = Math.random() * 100;
-    
+  private async evaluateWithAI(target: EvaluationTarget): Promise<EvaluationResult> {
+    const prompt = `
+      Please evaluate this social media profile as a potential AI/tech influencer:
+
+      Platform: ${target.platform}
+      Profile URL: ${target.url}
+      Content: ${target.content}
+      Followers: ${target.metadata.followers}
+
+      Evaluate based on:
+      1. Relevance to AI/tech
+      2. Engagement and influence
+      3. Content quality
+      4. Authenticity
+      5. Potential for collaboration
+
+      Provide:
+      1. Score (0-100)
+      2. Content categories
+      3. Key insights
+      4. Recommended action (reach_out/monitor/skip)
+      5. Confidence level (0-100)
+
+      Format response as JSON.
+    `;
+
+    const completion = await this.openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are an AI expert at evaluating social media profiles for potential tech influencer collaborations. Provide analysis in JSON format only."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    const response = JSON.parse(completion.choices[0].message.content || '{}');
+
     return {
       url: target.url,
       platform: target.platform,
-      score: score,
-      categories: ['technology', 'ai', 'influencer'],
-      insights: [
-        'High engagement rate',
-        'Relevant content focus',
-        'Active community'
-      ],
-      recommendedAction: score > 70 ? 'reach_out' : score > 40 ? 'monitor' : 'skip',
-      confidence: confidence
+      score: response.score,
+      categories: response.categories,
+      insights: response.insights,
+      recommendedAction: response.recommended_action,
+      confidence: response.confidence
     };
+  }
+
+  async processItem(target: EvaluationTarget): Promise<EvaluationResult> {
+    console.log(`Evaluating content from ${target.url} on ${target.platform}`);
+    
+    try {
+      const result = await this.evaluateWithAI(target);
+      return result;
+    } catch (error) {
+      console.error('Error evaluating profile:', error);
+      throw error;
+    }
+  }
+
+  addToQueue(target: EvaluationTarget) {
+    this.evaluationQueue.push(target);
   }
 }

@@ -63,6 +63,10 @@ Provide your evaluation in JSON format with these fields:
       response_format: { type: "json_object" }
     });
 
+    if (!response.choices[0]?.message?.content) {
+      throw new Error('No response content from OpenAI');
+    }
+
     const result = JSON.parse(response.choices[0].message.content);
     return result as EvaluationResult;
   } catch (error) {

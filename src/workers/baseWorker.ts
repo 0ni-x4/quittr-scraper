@@ -4,13 +4,18 @@ if (!parentPort) {
   throw new Error('This module must be run as a worker thread!');
 }
 
+interface WorkerMessage {
+  type: string;
+  data: any;
+}
+
 // Base message handler
-parentPort.on('message', async (data: any) => {
+parentPort.on('message', async (message: WorkerMessage) => {
   try {
     // Process data - to be implemented by specific workers
-    const result = await processData(data);
+    const result = await processData(message.data);
     parentPort!.postMessage(result);
-  } catch (error) {
+  } catch (error: any) {
     parentPort!.postMessage({ error: error.message });
   }
 });

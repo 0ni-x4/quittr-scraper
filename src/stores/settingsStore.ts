@@ -2,23 +2,24 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface Settings {
-  licenseKey: string;
   openaiKey: string;
   maxCpuUsage: number;
   parallelAgents: number;
+  instagramUsername: string;
+  instagramPassword: string;
 }
 
 interface SettingsStore {
   settings: Settings;
   updateSettings: (settings: Settings) => void;
-  validateLicense: (key: string) => Promise<boolean>;
 }
 
 const defaultSettings: Settings = {
-  licenseKey: '',
   openaiKey: '',
   maxCpuUsage: 50,
-  parallelAgents: 3
+  parallelAgents: 2,
+  instagramUsername: '',
+  instagramPassword: ''
 };
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -26,14 +27,17 @@ export const useSettingsStore = create<SettingsStore>()(
     (set) => ({
       settings: defaultSettings,
       updateSettings: (newSettings) => set({ settings: newSettings }),
-      validateLicense: async (key: string) => {
-        // TODO: Implement actual license validation
-        // For now, just check if key is not empty
-        return key.length > 0;
-      }
     }),
     {
-      name: 'settings-storage'
+      name: 'ai-influencer-settings',
+      partialize: (state) => ({
+        settings: {
+          ...state.settings,
+          // Don't persist sensitive data to local storage
+          openaiKey: '',
+          instagramPassword: ''
+        }
+      })
     }
   )
 ); 

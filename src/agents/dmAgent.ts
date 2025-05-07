@@ -99,17 +99,21 @@ export class DMAgent {
     await page.waitForSelector('header section');
     
     // Extract bio and link
-    const bio = await page.evaluate(() => 
-      document.querySelector('header > div:nth-child(3)')?.textContent || '');
+    const bio = await page.evaluate(() => {
+      const bioElement = document.querySelector('header > div:nth-child(3)');
+      return bioElement?.textContent || '';
+    });
     
-    const link = await page.evaluate(() => 
-      document.querySelector('header a[href^="http"]')?.getAttribute('href') || '');
+    const link = await page.evaluate(() => {
+      const linkElement = document.querySelector('header a[href^="http"]');
+      return linkElement?.getAttribute('href') || '';
+    });
 
     // Extract follower count
     const followers = await page.evaluate(() => {
       const items = document.querySelectorAll('header section ul li');
       const followerItem = Array.from(items)[1]; // Second item is followers
-      const text = followerItem?.textContent || '0';
+      const text = (followerItem as HTMLElement)?.textContent || '0';
       const count = parseInt(text.replace(/[^0-9]/g, ''));
       return count || 0;
     });
@@ -118,9 +122,9 @@ export class DMAgent {
     const captions: string[] = await page.evaluate(() => {
       const articles = document.querySelectorAll('article');
       return Array.from(articles).slice(0, 5).map(article => {
-        const caption = article.querySelector('h1')?.textContent || 
-                       article.querySelector('div[role="menuitem"]')?.textContent || '';
-        return caption.trim();
+        const captionElement = (article as HTMLElement).querySelector('h1') || 
+                             (article as HTMLElement).querySelector('div[role="menuitem"]');
+        return captionElement?.textContent?.trim() || '';
       });
     });
 
@@ -186,9 +190,9 @@ export class DMAgent {
       this.cookieManager.incrementDMCount(this.currentUsername!);
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to send DM to ${username}:`, error);
-      if (error.message.includes('rate limit')) {
+      if (error.message && error.message.includes('rate limit')) {
         this.cookieManager.markAsRateLimited(this.currentUsername!);
       }
       return false;
