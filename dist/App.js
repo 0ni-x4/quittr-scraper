@@ -78,4 +78,3 @@ function App() {
       </Layout>
     </react_router_dom_1.BrowserRouter>);
 }
-//# sourceMappingURL=App.js.map

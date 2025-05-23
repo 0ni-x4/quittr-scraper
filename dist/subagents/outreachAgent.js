@@ -45,6 +45,9 @@ class OutreachAgent extends baseAgent_1.BaseAgent {
             response: success ? 'Message delivered successfully' : 'Failed to send message'
         };
     }
+    async execute() {
+        return await super.execute();
+    }
 }
 exports.OutreachAgent = OutreachAgent;
 //# sourceMappingURL=outreachAgent.js.map

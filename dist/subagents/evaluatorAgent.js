@@ -46,7 +46,7 @@ class EvaluatorAgent extends baseAgent_1.BaseAgent {
       Format response as JSON.
     `;
         const completion = await this.openai.chat.completions.create({
-            model: "gpt-4",
+            model: "gpt-3.5-turbo",
             messages: [
                 {
                     role: "system",
@@ -71,18 +71,27 @@ class EvaluatorAgent extends baseAgent_1.BaseAgent {
         };
     }
     async processItem(target) {
-        console.log(`Evaluating content from ${target.url} on ${target.platform}`);
         try {
-            const result = await this.evaluateWithAI(target);
-            return result;
+            console.log(`Evaluating content from ${target.url} on ${target.platform}`);
+            const evaluation = await this.evaluateWithAI(target);
+            if (evaluation.score >= 70) {
+                console.log(`Account approved: ${target.url}`);
+            }
+            else {
+                console.log(`Account not approved: ${target.url}`);
+            }
+            return evaluation;
         }
         catch (error) {
-            console.error('Error evaluating profile:', error);
+            console.error(`Error evaluating profile: ${error}`);
             throw error;
         }
     }
     addToQueue(target) {
         this.evaluationQueue.push(target);
+    }
+    async execute() {
+        return await super.execute();
     }
 }
 exports.EvaluatorAgent = EvaluatorAgent;

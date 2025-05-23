@@ -1,14 +1,16 @@
-import { Agent, AgentConfig, AgentResult, AgentMetrics } from '../types/agent';
-export declare abstract class BaseAgent implements Agent {
-    protected config: AgentConfig;
-    protected running: boolean;
+import { Agent, AgentConfig, AgentResult, AgentMetrics, AgentStatus } from '../types/agent';
+export declare abstract class BaseAgent<T> implements Agent {
     protected metrics: AgentMetrics;
-    protected workers: Promise<void>[];
+    protected status: AgentStatus;
+    protected readonly threadCount: number;
     constructor(config: AgentConfig);
-    abstract processItem(item: any): Promise<any>;
-    abstract getItems(): Promise<any[]>;
-    protected worker(items: any[]): Promise<void>;
+    abstract getItems(): Promise<T[]>;
+    abstract processItem(item: T): Promise<any>;
+    getMetrics(): AgentMetrics;
+    getStatus(): AgentStatus;
+    protected processItems(items: T[]): Promise<void>;
+    protected chunkArray<T>(array: T[], size: number): T[][];
     execute(): Promise<AgentResult>;
-    stop(): void;
-    isRunning(): boolean;
+    stop(): Promise<void>;
 }
+//# sourceMappingURL=baseAgent.d.ts.map

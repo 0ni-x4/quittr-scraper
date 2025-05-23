@@ -19,7 +19,7 @@ interface OutreachResult {
   response?: string;
 }
 
-export class OutreachAgent extends BaseAgent {
+export class OutreachAgent extends BaseAgent<OutreachTarget> {
   private outreachQueue: OutreachTarget[] = [
     // Example outreach target - replace with actual data from evaluator
     {
@@ -68,5 +68,9 @@ export class OutreachAgent extends BaseAgent {
       timestamp: new Date(),
       response: success ? 'Message delivered successfully' : 'Failed to send message'
     };
+  }
+
+  async execute() {
+    return await super.execute();
   }
 }

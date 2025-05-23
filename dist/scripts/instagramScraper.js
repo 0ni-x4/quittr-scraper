@@ -177,4 +177,3 @@ async function searchAndScrapeProfiles() {
 searchAndScrapeProfiles()
     .then(() => console.log('Scraping completed'))
     .catch(error => console.error('Scraping failed:', error));
-//# sourceMappingURL=instagramScraper.js.map

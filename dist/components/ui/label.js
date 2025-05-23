@@ -43,4 +43,3 @@ const labelVariants = (0, class_variance_authority_1.cva)("text-sm font-medium l
 const Label = React.forwardRef(({ className, ...props }, ref) => (<LabelPrimitive.Root ref={ref} className={(0, utils_1.cn)(labelVariants(), className)} {...props}/>));
 exports.Label = Label;
 Label.displayName = LabelPrimitive.Root.displayName;
-//# sourceMappingURL=label.js.map

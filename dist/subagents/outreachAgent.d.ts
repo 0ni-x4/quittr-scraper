@@ -16,11 +16,13 @@ interface OutreachResult {
     timestamp: Date;
     response?: string;
 }
-export declare class OutreachAgent extends BaseAgent {
+export declare class OutreachAgent extends BaseAgent<OutreachTarget> {
     private outreachQueue;
     constructor(config: AgentConfig);
     getItems(): Promise<OutreachTarget[]>;
     private generatePersonalizedMessage;
     processItem(target: OutreachTarget): Promise<OutreachResult>;
+    execute(): Promise<import("../types/agent").AgentResult>;
 }
 export {};
+//# sourceMappingURL=outreachAgent.d.ts.map

@@ -123,4 +123,3 @@ class MessageManager {
     }
 }
 exports.MessageManager = MessageManager;
-//# sourceMappingURL=messageManager.js.map

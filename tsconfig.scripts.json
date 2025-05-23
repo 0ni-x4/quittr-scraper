@@ -1,13 +1,16 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "outDir": "dist",
     "noEmit": false,
     "allowJs": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "target": "ES2020",
+    "lib": ["es2020", "dom"],
+    "resolveJsonModule": true
   },
-  "include": ["src/scripts/**/*", "src/subagents/**/*"],
+  "include": ["src/scripts/**/*", "src/subagents/**/*", "src/testAgents.ts", "src/stores/**/*"],
   "exclude": ["node_modules"]
 } 

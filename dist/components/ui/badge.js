@@ -57,4 +57,3 @@ function Badge({ className, variant, asChild = false, ...props }) {
     const Comp = asChild ? react_slot_1.Slot : "span";
     return (<Comp data-slot="badge" className={(0, utils_1.cn)(badgeVariants({ variant }), className)} {...props}/>);
 }
-//# sourceMappingURL=badge.js.map

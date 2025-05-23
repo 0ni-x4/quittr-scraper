@@ -19,15 +19,24 @@ async function testScraperAgent() {
   console.log('Testing Scraper Agent...');
   const scraper = new ScraperAgent({ 
     threadCount: 1, 
-    maxRetries: 3, 
-    timeoutMs: 60000
+    timeoutMs: 30000  // Reduced timeout to 30 seconds
   });
   
   try {
     // Initialize browser and verify login
     await scraper.initBrowser();
+    
+    // Set a reference account to scrape
+    await scraper.setReferenceAccount('openai');
+    
+    // Add a delay to ensure the browser has time to load
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
     const result = await scraper.execute();
     console.log('Scraper Result:', result);
+    
+    // Keep the browser open for a moment to see the results
+    await new Promise(resolve => setTimeout(resolve, 30000));
   } catch (error) {
     console.error('Error during testing:', error);
   } finally {

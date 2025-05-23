@@ -1,13 +1,12 @@
 import { AgentResult, ScraperTarget, ScrapedData } from '../types/agent';
 import { BaseAgent } from './baseAgent';
-import { useSettingsStore } from '../stores/settingsStore';
 import { chromium, Page, Browser, BrowserContext } from 'playwright';
 import * as dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
-export class ScraperAgent extends BaseAgent {
+export class ScraperAgent extends BaseAgent<ScraperTarget> {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
   private mainPage: Page | null = null;
@@ -15,17 +14,15 @@ export class ScraperAgent extends BaseAgent {
   private processedUsernames: Set<string> = new Set();
   private readonly maxSuggestedAccounts: number = 50;
   private readonly maxDepth: number = 3;
-  private readonly maxRetries: number;
   private readonly timeoutMs: number;
   private isLoggedIn: boolean = false;
 
-  constructor(options: { threadCount: number; maxRetries: number; timeoutMs: number }) {
+  constructor(options: { threadCount: number; timeoutMs: number }) {
     super({ 
       threadCount: options.threadCount,
-      maxRetries: options.maxRetries,
+      maxRetries: 3, // Default value
       timeoutMs: options.timeoutMs
     });
-    this.maxRetries = options.maxRetries;
     this.timeoutMs = options.timeoutMs;
   }
 
@@ -108,9 +105,9 @@ export class ScraperAgent extends BaseAgent {
     
     // Add stealth measures
     await this.context.addInitScript(() => {
-      Object.defineProperty(navigator, 'webdriver', { get: () => false });
-      Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
-      Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+      Object.defineProperty(window.navigator, 'webdriver', { get: () => false });
+      Object.defineProperty(window.navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+      Object.defineProperty(window.navigator, 'languages', { get: () => ['en-US', 'en'] });
       // @ts-ignore - Adding chrome runtime to window
       window.chrome = { runtime: {} };
     });
@@ -187,8 +184,8 @@ export class ScraperAgent extends BaseAgent {
       console.log(`Navigating to ${profileUrl}`);
       
       await this.mainPage.goto(profileUrl, { 
-        waitUntil: 'networkidle',
-        timeout: 60000 
+        waitUntil: 'domcontentloaded',
+        timeout: this.timeoutMs 
       });
 
       // First check if the profile exists
@@ -215,10 +212,10 @@ export class ScraperAgent extends BaseAgent {
       // Get follower count, following count, and post count
       console.log('Extracting profile metrics...');
       const metadata = await this.mainPage.evaluate(() => {
-        const metricItems = document.querySelectorAll('header section ul li');
+        const metricItems = window.document.querySelectorAll('header section ul li');
         const metrics: Record<string, string> = {};
         
-        metricItems.forEach((item, index) => {
+        metricItems.forEach((item: Element, index: number) => {
           const text = item.textContent || '';
           if (index === 0) metrics.posts = text.match(/[\d,]+/)?.[0] || '0';
           if (index === 1) metrics.followers = text.match(/[\d,]+/)?.[0] || '0';
@@ -231,7 +228,7 @@ export class ScraperAgent extends BaseAgent {
       // Get bio and other profile information
       console.log('Extracting bio and profile info...');
       const profileInfo = await this.mainPage.evaluate(() => {
-        const bioSection = document.querySelector('header section');
+        const bioSection = window.document.querySelector('header section');
         const bio = bioSection?.querySelector('h1')?.nextElementSibling?.textContent || '';
         const name = bioSection?.querySelector('h2')?.textContent || '';
         const category = bioSection?.querySelector('div > span')?.textContent || '';
@@ -248,14 +245,14 @@ export class ScraperAgent extends BaseAgent {
       // Get recent posts data
       console.log('Extracting recent posts data...');
       const recentPosts = await this.mainPage.evaluate(() => {
-        const posts = Array.from(document.querySelectorAll('article')).slice(0, 12);
+        const posts = Array.from(window.document.querySelectorAll('article')).slice(0, 12);
         return posts.map(post => {
-          const caption = post.querySelector('h1')?.textContent || 
-                         post.querySelector('div[role="menuitem"]')?.textContent || '';
-          const likes = post.querySelector('section span')?.textContent || '0';
-          const timestamp = post.querySelector('time')?.getAttribute('datetime') || '';
-          const isVideo = !!post.querySelector('video');
-          const isCarousel = !!post.querySelector('ul[role="tablist"]');
+          const caption = (post as Element).querySelector('h1')?.textContent || 
+                         (post as Element).querySelector('div[role="menuitem"]')?.textContent || '';
+          const likes = (post as Element).querySelector('section span')?.textContent || '0';
+          const timestamp = (post as Element).querySelector('time')?.getAttribute('datetime') || '';
+          const isVideo = !!(post as Element).querySelector('video');
+          const isCarousel = !!(post as Element).querySelector('ul[role="tablist"]');
           
           return {
             caption: caption.trim(),
@@ -276,7 +273,7 @@ export class ScraperAgent extends BaseAgent {
 
       // Extract hashtags from bio and recent posts
       const hashtagRegex = /#[\w-]+/g;
-      const bioHashtags = (profileInfo.bio.match(hashtagRegex) || []).map(tag => tag.slice(1));
+      const bioHashtags = (profileInfo.bio.match(hashtagRegex) || []).map((tag: string) => tag.slice(1));
       const postHashtags = recentPosts
         .map(post => post.caption.match(hashtagRegex) || [])
         .flat()
@@ -322,44 +319,82 @@ export class ScraperAgent extends BaseAgent {
     try {
       console.log(`Getting suggested accounts for ${username}...`);
       const profileUrl = `https://www.instagram.com/${username}/`;
-      await this.mainPage.goto(profileUrl, { waitUntil: 'networkidle', timeout: 60000 });
-
-      // Wait for the suggested accounts section to load
-      await this.mainPage.waitForSelector('div[role="dialog"]', { timeout: 30000 }).catch(() => null);
       
-      // Click on the followers/following button to open the modal
-      const followersButton = await this.mainPage.$('a[href*="/followers/"]');
-      if (followersButton) {
-        await followersButton.click();
-        await this.mainPage.waitForTimeout(2000); // Wait for modal to load
+      await this.mainPage.goto(profileUrl, { 
+        waitUntil: 'domcontentloaded',
+        timeout: 60000 
+      });
+
+      // Wait for the profile page to load
+      console.log('Waiting for profile content to load...');
+      await this.mainPage.waitForSelector('header', { timeout: 30000 });
+      await this.mainPage.waitForTimeout(3000); // Give it time to fully load
+
+      console.log('Looking for Similar accounts button...');
+      
+      // Use the same approach as the working Python code
+      const clickResult = await this.mainPage.evaluate(() => {
+        const svg = document.querySelector('svg[aria-label="Similar accounts"]');
+        if (svg && svg.parentElement) {
+          svg.parentElement.click();
+          return { success: true, found: true };
+        }
+        return { success: false, found: false };
+      });
+
+      if (!clickResult.found) {
+        console.log('Similar accounts button not found');
+        await this.mainPage.screenshot({ path: 'debug_no_similar_button.png' });
+        return [];
       }
 
-      // Extract suggested accounts
+      if (!clickResult.success) {
+        console.log('Failed to click Similar accounts button');
+        return [];
+      }
+
+      console.log('Successfully clicked Similar accounts button');
+      await this.mainPage.waitForTimeout(2000); // Wait for suggestions to appear
+
+      // Extract suggested accounts using the same selector as the Python code
       const suggestedAccounts = await this.mainPage.evaluate(() => {
         const accounts: string[] = [];
-        const accountElements = document.querySelectorAll('div[role="dialog"] a[role="link"]');
+        // Look for account containers - using the exact selector from Python code
+        const containers = document.querySelectorAll('div.x9f619.xjbqb8w.x78zum5.x168nmei.x13lgxp2.x5pf9jr.xo71vjh.x1uhb9sk.x1plvlek.xryxfnj.x1c4vz4f.x2lah0s.x1q0g3np.xqjyukv.x1qjc9v5.x1oa3qoh.xl56j7k');
         
-        accountElements.forEach(element => {
-          const href = element.getAttribute('href');
-          if (href && href.startsWith('/') && !href.includes('/p/')) {
-            const username = href.split('/')[1];
-            if (username && !accounts.includes(username)) {
-              accounts.push(username);
-            }
+        containers.forEach(container => {
+          const span = container.querySelector('a[role="link"] span.x1lliihq.x193iq5w.x6ikm8r.x10wlt62.xlyipyv.xuxw1ft');
+          if (span && span.textContent) {
+            accounts.push(span.textContent);
           }
         });
 
         return accounts;
       });
 
-      // Close the modal
-      const closeButton = await this.mainPage.$('button[aria-label="Close"]');
-      if (closeButton) {
-        await closeButton.click();
-        await this.mainPage.waitForTimeout(1000);
+      console.log(`Found ${suggestedAccounts.length} suggested accounts`);
+
+      // Close the suggestions by pressing Escape
+      await this.mainPage.keyboard.press('Escape');
+      await this.mainPage.waitForTimeout(1000);
+
+      // Recursively get suggestions from each suggested account (limit to prevent infinite loops)
+      const allSuggestions = new Set<string>(suggestedAccounts);
+      
+      for (const suggestedUsername of suggestedAccounts) {
+        if (allSuggestions.size >= this.maxSuggestedAccounts) break;
+        
+        try {
+          console.log(`Getting nested suggestions for ${suggestedUsername}...`);
+          const nestedSuggestions = await this.getSuggestedAccounts(suggestedUsername);
+          nestedSuggestions.forEach(suggestion => allSuggestions.add(suggestion));
+        } catch (error) {
+          console.error(`Error getting nested suggestions for ${suggestedUsername}:`, error);
+          continue;
+        }
       }
 
-      return suggestedAccounts.slice(0, this.maxSuggestedAccounts);
+      return Array.from(allSuggestions).slice(0, this.maxSuggestedAccounts);
     } catch (error) {
       console.error(`Error getting suggested accounts for ${username}:`, error);
       return [];
@@ -437,8 +472,17 @@ export class ScraperAgent extends BaseAgent {
         await this.initBrowser();
       }
       
-      // Execute the base agent's execute method
-      return await super.execute();
+      // Process all targets
+      await this.processItems(this.targets);
+      
+      // Don't close the browser here - let it be managed by the stop() method
+      return {
+        success: true,
+        data: {
+          processedItems: this.targets.length,
+          errors: []
+        }
+      };
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       return {

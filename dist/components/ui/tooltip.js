@@ -59,4 +59,3 @@ function TooltipContent({ className, sideOffset = 0, children, ...props }) {
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>);
 }
-//# sourceMappingURL=tooltip.js.map

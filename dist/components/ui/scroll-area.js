@@ -54,4 +54,3 @@ function ScrollBar({ className, orientation = "vertical", ...props }) {
       <ScrollAreaPrimitive.ScrollAreaThumb data-slot="scroll-area-thumb" className="bg-border relative flex-1 rounded-full"/>
     </ScrollAreaPrimitive.ScrollAreaScrollbar>);
 }
-//# sourceMappingURL=scroll-area.js.map

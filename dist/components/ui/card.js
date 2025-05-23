@@ -63,4 +63,3 @@ function CardContent({ className, ...props }) {
 function CardFooter({ className, ...props }) {
     return (<div data-slot="card-footer" className={(0, utils_1.cn)("flex items-center px-6 [.border-t]:pt-6", className)} {...props}/>);
 }
-//# sourceMappingURL=card.js.map

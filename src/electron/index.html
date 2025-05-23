@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Influencer Agent Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #000000;
+            padding: 20px;
+            border-right: 1px solid #a1a1aa;
+        }
+
+        .sidebar h2 {
+            color: #ffffff;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            font-weight: 400;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin: 2px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #000000;
+            border: 1px solid #a1a1aa;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+
+        .nav-item:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: #dc2626;
+            color: #ffffff;
+            border-color: #dc2626;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .card {
+            background: #1a1a1a;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #a1a1aa;
+            color: #ffffff;
+            border-radius: 6px;
+        }
+
+        .card h3 {
+            color: #ffffff;
+            margin-bottom: 16px;
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #a1a1aa;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            background: #2a2a2a;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .form-group input::placeholder {
+            color: #a1a1aa;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: 1px solid #a1a1aa;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin: 5px;
+            background: #2a2a2a;
+            color: #ffffff;
+            border-radius: 4px;
+        }
+
+        .btn-primary {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .btn-primary:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .btn-success {
+            background: #2a2a2a;
+            color: #ffffff;
+            border-color: #a1a1aa;
+        }
+
+        .btn-success:hover {
+            background: #dc2626;
+            color: #ffffff;
+            border-color: #dc2626;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: #ffffff;
+            border-color: #dc2626;
+        }
+
+        .btn-danger:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .logs-container {
+            background: #000000;
+            color: #ffffff;
+            padding: 16px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            border: 1px solid #a1a1aa;
+            border-radius: 4px;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            border: 1px solid #a1a1aa;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #a1a1aa;
+        }
+
+        th {
+            background: #000000;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        tr:hover {
+            background: #2a2a2a;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid #a1a1aa;
+            border-radius: 3px;
+        }
+
+        .status-active {
+            background: #1a1a1a;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        .status-pending {
+            background: #1a1a1a;
+            color: #ffffff;
+            border-color: #a1a1aa;
+        }
+
+        .status-completed {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #1a1a1a;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #a1a1aa;
+            border-radius: 6px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #dc2626;
+        }
+
+        .stat-label {
+            color: #ffffff;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* Range input styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #a1a1aa;
+            outline: none;
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #dc2626;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #dc2626;
+            cursor: pointer;
+            border: none;
+            border-radius: 50%;
+        }
+
+        #cpu-value {
+            margin-left: 10px;
+            font-weight: 500;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>AI Agent</h2>
+            <div class="nav-item active" data-view="dashboard">
+                Dashboard
+            </div>
+            <div class="nav-item" data-view="config">
+                Configuration
+            </div>
+            <div class="nav-item" data-view="scraped">
+                Scraped Profiles
+            </div>
+            <div class="nav-item" data-view="evaluated">
+                Evaluated Profiles
+            </div>
+            <div class="nav-item" data-view="logs">
+                Agent Logs
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Dashboard View -->
+            <div id="dashboard" class="view active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="scraped-count">0</div>
+                        <div class="stat-label">Scraped Profiles</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="evaluated-count">0</div>
+                        <div class="stat-label">Evaluated Profiles</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="success-rate">0%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="agents-running">0</div>
+                        <div class="stat-label">Active Agents</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <div class="controls">
+                        <input type="text" id="reference-account" placeholder="Enter reference account username">
+                        <button class="btn btn-primary" onclick="startScraper()">Start Scraper</button>
+                        <button class="btn btn-success" onclick="startEvaluator()">Start Evaluator</button>
+                        <button class="btn btn-danger" onclick="stopAgents()">Stop All Agents</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div class="logs-container" id="recent-logs">
+                        <div class="log-entry">System initialized...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration View -->
+            <div id="config" class="view">
+                <div class="card">
+                    <h3>Agent Configuration</h3>
+                    <form id="config-form">
+                        <div class="form-group">
+                            <label for="openai-key">OpenAI API Key</label>
+                            <input type="password" id="openai-key" placeholder="sk-...">
+                        </div>
+                        <div class="form-group">
+                            <label for="license-key">License Key</label>
+                            <input type="text" id="license-key" placeholder="Enter your license key">
+                        </div>
+                        <div class="form-group">
+                            <label for="max-cpu">Max CPU Usage (%)</label>
+                            <input type="range" id="max-cpu" min="10" max="100" value="80">
+                            <span id="cpu-value">80%</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="parallel-agents">Number of Parallel Agents</label>
+                            <select id="parallel-agents">
+                                <option value="1">1 Agent</option>
+                                <option value="2">2 Agents</option>
+                                <option value="3" selected>3 Agents</option>
+                                <option value="4">4 Agents</option>
+                                <option value="5">5 Agents</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Scraped Profiles View -->
+            <div id="scraped" class="view">
+                <div class="card">
+                    <h3>Scraped Profiles</h3>
+                    <div class="controls">
+                        <button class="btn btn-success" onclick="exportCSV('scraped')">Export as CSV</button>
+                        <button class="btn btn-primary" onclick="refreshScrapedData()">Refresh Data</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="scraped-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Platform</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scraped-tbody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #a1a1aa;">No scraped profiles yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluated Profiles View -->
+            <div id="evaluated" class="view">
+                <div class="card">
+                    <h3>Evaluated Profiles</h3>
+                    <div class="controls">
+                        <button class="btn btn-success" onclick="exportCSV('evaluated')">Export as CSV</button>
+                        <button class="btn btn-primary" onclick="refreshEvaluatedData()">Refresh Data</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="evaluated-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Platform</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                    <th>Evaluation Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evaluated-tbody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: #a1a1aa;">No evaluated profiles yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs View -->
+            <div id="logs" class="view">
+                <div class="card">
+                    <h3>Scraper Logs</h3>
+                    <div class="logs-container" id="scraper-logs">
+                        <div class="log-entry">Scraper agent ready...</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Evaluator Logs</h3>
+                    <div class="logs-container" id="evaluator-logs">
+                        <div class="log-entry">Evaluator agent ready...</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Outreach Logs</h3>
+                    <div class="logs-container" id="outreach-logs">
+                        <div class="log-entry">Outreach agent ready...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html> 

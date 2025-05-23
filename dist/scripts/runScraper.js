@@ -95,4 +95,3 @@ async function main() {
 }
 // Run the script
 main().catch(console.error);
-//# sourceMappingURL=runScraper.js.map

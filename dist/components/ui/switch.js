@@ -42,4 +42,3 @@ const Switch = React.forwardRef(({ className, ...props }, ref) => (<SwitchPrimit
   </SwitchPrimitives.Root>));
 exports.Switch = Switch;
 Switch.displayName = SwitchPrimitives.Root.displayName;
-//# sourceMappingURL=switch.js.map

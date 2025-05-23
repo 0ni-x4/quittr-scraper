@@ -20,7 +20,7 @@ interface EvaluationResult {
   confidence: number;
 }
 
-export class EvaluatorAgent extends BaseAgent {
+export class EvaluatorAgent extends BaseAgent<EvaluationTarget> {
   private openai: OpenAI;
   private evaluationQueue: EvaluationTarget[] = [];
 
@@ -92,18 +92,26 @@ export class EvaluatorAgent extends BaseAgent {
   }
 
   async processItem(target: EvaluationTarget): Promise<EvaluationResult> {
-    console.log(`Evaluating content from ${target.url} on ${target.platform}`);
-    
     try {
-      const result = await this.evaluateWithAI(target);
-      return result;
+      console.log(`Evaluating content from ${target.url} on ${target.platform}`);
+      const evaluation = await this.evaluateWithAI(target);
+      if (evaluation.score >= 70) {
+        console.log(`Account approved: ${target.url}`);
+      } else {
+        console.log(`Account not approved: ${target.url}`);
+      }
+      return evaluation;
     } catch (error) {
-      console.error('Error evaluating profile:', error);
+      console.error(`Error evaluating profile: ${error}`);
       throw error;
     }
   }
 
   addToQueue(target: EvaluationTarget) {
     this.evaluationQueue.push(target);
+  }
+
+  async execute() {
+    return await super.execute();
   }
 }

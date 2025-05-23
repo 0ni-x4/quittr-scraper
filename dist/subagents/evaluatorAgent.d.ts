@@ -15,7 +15,7 @@ interface EvaluationResult {
     recommendedAction: 'reach_out' | 'monitor' | 'skip';
     confidence: number;
 }
-export declare class EvaluatorAgent extends BaseAgent {
+export declare class EvaluatorAgent extends BaseAgent<EvaluationTarget> {
     private openai;
     private evaluationQueue;
     constructor(config: AgentConfig);
@@ -23,5 +23,7 @@ export declare class EvaluatorAgent extends BaseAgent {
     private evaluateWithAI;
     processItem(target: EvaluationTarget): Promise<EvaluationResult>;
     addToQueue(target: EvaluationTarget): void;
+    execute(): Promise<import("../types/agent").AgentResult>;
 }
 export {};
+//# sourceMappingURL=evaluatorAgent.d.ts.map

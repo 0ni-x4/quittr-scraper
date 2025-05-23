@@ -1,19 +1,6 @@
-import { AgentResult } from '../types/agent';
+import { AgentResult, ScraperTarget, ScrapedData } from '../types/agent';
 import { BaseAgent } from './baseAgent';
-interface ScraperTarget {
-    username: string;
-    platform: string;
-    keywords: string[];
-    isReferenceAccount?: boolean;
-}
-interface ScrapedData {
-    username: string;
-    platform: string;
-    content: string;
-    metadata: Record<string, any>;
-    timestamp: Date;
-}
-export declare class ScraperAgent extends BaseAgent {
+export declare class ScraperAgent extends BaseAgent<ScraperTarget> {
     private browser;
     private context;
     private mainPage;
@@ -21,12 +8,10 @@ export declare class ScraperAgent extends BaseAgent {
     private processedUsernames;
     private readonly maxSuggestedAccounts;
     private readonly maxDepth;
-    private readonly maxRetries;
     private readonly timeoutMs;
     private isLoggedIn;
     constructor(options: {
         threadCount: number;
-        maxRetries: number;
         timeoutMs: number;
     });
     getItems(): Promise<ScraperTarget[]>;
@@ -40,4 +25,4 @@ export declare class ScraperAgent extends BaseAgent {
     execute(): Promise<AgentResult>;
     stop(): Promise<void>;
 }
-export {};
+//# sourceMappingURL=scraperAgent.d.ts.map

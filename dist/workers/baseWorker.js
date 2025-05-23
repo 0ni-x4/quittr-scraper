@@ -20,4 +20,3 @@ worker_threads_1.parentPort.on('message', async (message) => {
 async function processData(data) {
     throw new Error('processData must be implemented by the worker!');
 }
-//# sourceMappingURL=baseWorker.js.map

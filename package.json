@@ -1,18 +1,25 @@
 {
   "name": "ai-influencer-agent",
   "private": true,
-  "version": "0.1.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "AI-powered influencer discovery and outreach automation",
+  "main": "dist/electron/main.js",
+  "homepage": "./",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:agents": "tsc --project tsconfig.agents.json",
-    "build:all": "npm run build && npm run build:agents",
+    "build": "tsc -p tsconfig.electron.json",
+    "build-react": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "tauri": "tauri",
-    "test:agents": "ts-node --project tsconfig.scripts.json src/testAgents.ts",
     "test:scraper": "ts-node --project tsconfig.scripts.json src/scripts/testScraper.ts",
-    "start:scraper": "ts-node-dev --project tsconfig.scripts.json src/scripts/testScraper.ts"
+    "test:all": "ts-node --project tsconfig.scripts.json src/scripts/runAllTests.ts",
+    "start:scraper": "ts-node-dev --project tsconfig.scripts.json src/scripts/testScraper.ts",
+    "start": "npx ts-node src/testAgents.ts",
+    "test": "npx ts-node src/test-scraper.ts",
+    "electron": "concurrently \"npm run build\" \"wait-on dist/electron/main.js && electron .\"",
+    "electron-dev": "concurrently \"tsc -p tsconfig.electron.json -w\" \"wait-on dist/electron/main.js && electron .\"",
+    "dist": "npm run build && electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.11",
@@ -24,10 +31,10 @@
     "@radix-ui/react-tooltip": "^1.2.4",
     "@types/dotenv": "^6.1.1",
     "@types/lowdb": "^1.0.15",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.3.1",
     "lowdb": "^1.0.0",
     "openai": "^4.96.2",
-    "playwright": "^1.51.1",
+    "playwright": "^1.40.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
@@ -36,21 +43,58 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.9",
-    "@types/node": "^20.17.35",
+    "@types/node": "^20.10.0",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "concurrently": "^8.2.2",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
     "lucide-react": "^0.331.0",
     "postcss": "^8.5.3",
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
-    "ts-node": "^10.9.2",
+    "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3",
-    "vite": "^5.0.12"
-  }
+    "typescript": "^5.3.2",
+    "vite": "^5.0.12",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.aiinfluencer.agent",
+    "productName": "AI Influencer Agent",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "src/electron/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  },
+  "keywords": [
+    "ai",
+    "influencer",
+    "automation",
+    "scraping",
+    "electron"
+  ],
+  "author": "AI Influencer Agent",
+  "license": "MIT"
 }

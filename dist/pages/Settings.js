@@ -108,4 +108,3 @@ function Settings() {
       </div>
     </div>);
 }
-//# sourceMappingURL=Settings.js.map

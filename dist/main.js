@@ -10,4 +10,3 @@ require("./index.css");
 client_1.default.createRoot(document.getElementById('root')).render(<react_1.default.StrictMode>
     <App_1.App />
   </react_1.default.StrictMode>);
-//# sourceMappingURL=main.js.map

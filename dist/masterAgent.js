@@ -77,4 +77,3 @@ exports.MasterAgent = MasterAgent;
 // Example usage:
 // const master = new MasterAgent();
 // master.execute().then(result => console.log('Execution complete:', result));
-//# sourceMappingURL=masterAgent.js.map

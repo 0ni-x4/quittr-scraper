@@ -66,4 +66,3 @@ function Button({ className, variant, size, asChild = false, ...props }) {
     const Comp = asChild ? react_slot_1.Slot : "button";
     return (<Comp data-slot="button" className={(0, utils_1.cn)(buttonVariants({ variant, size, className }))} {...props}/>);
 }
-//# sourceMappingURL=button.js.map

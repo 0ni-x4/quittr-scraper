@@ -57,4 +57,3 @@ AlertTitle.displayName = "AlertTitle";
 const AlertDescription = React.forwardRef(({ className, ...props }, ref) => (<div ref={ref} className={(0, utils_1.cn)("text-sm [&_p]:leading-relaxed", className)} {...props}/>));
 exports.AlertDescription = AlertDescription;
 AlertDescription.displayName = "AlertDescription";
-//# sourceMappingURL=alert.js.map

@@ -1,23 +1,42 @@
+export interface ScrapedData {
+    username: string;
+    platform: string;
+    content: string;
+    metadata: Record<string, any>;
+    timestamp: Date;
+    url?: string;
+}
+export interface ScraperTarget {
+    username: string;
+    platform: string;
+    keywords: string[];
+    isReferenceAccount?: boolean;
+    url?: string;
+}
+export interface AgentMetrics {
+    processedItems: number;
+    errors: Error[];
+}
+export interface AgentResult {
+    success: boolean;
+    error?: Error;
+    data: AgentMetrics;
+}
 export interface AgentConfig {
     threadCount: number;
     maxRetries: number;
     timeoutMs: number;
 }
-export interface AgentResult {
-    success: boolean;
-    data: any;
-    error?: Error;
+export declare enum AgentStatus {
+    IDLE = "idle",
+    RUNNING = "running",
+    STOPPED = "stopped",
+    ERROR = "error"
 }
 export interface Agent {
     execute(): Promise<AgentResult>;
-    stop(): void;
-    isRunning(): boolean;
+    stop(): Promise<void>;
+    getMetrics(): AgentMetrics;
+    getStatus(): AgentStatus;
 }
-export type AgentStatus = 'idle' | 'running' | 'completed' | 'failed';
-export interface AgentMetrics {
-    startTime: Date;
-    endTime?: Date;
-    processedItems: number;
-    errors: Error[];
-    status: AgentStatus;
-}
+//# sourceMappingURL=agent.d.ts.map

@@ -88,4 +88,3 @@ function SheetTitle({ className, ...props }) {
 function SheetDescription({ className, ...props }) {
     return (<SheetPrimitive.Description data-slot="sheet-description" className={(0, utils_1.cn)("text-muted-foreground text-sm", className)} {...props}/>);
 }
-//# sourceMappingURL=sheet.js.map

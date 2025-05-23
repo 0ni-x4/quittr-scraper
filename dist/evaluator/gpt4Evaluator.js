@@ -96,4 +96,3 @@ Provide your evaluation in JSON format with these fields:
         };
     }
 }
-//# sourceMappingURL=gpt4Evaluator.js.map

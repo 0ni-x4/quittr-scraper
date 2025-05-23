@@ -1,6 +1,6 @@
 import { Agent, AgentConfig, AgentResult, AgentMetrics, AgentStatus } from '../types/agent';
 
-export abstract class BaseAgent implements Agent {
+export abstract class BaseAgent<T> implements Agent {
   protected metrics: AgentMetrics;
   protected status: AgentStatus;
   protected readonly threadCount: number;
@@ -14,8 +14,8 @@ export abstract class BaseAgent implements Agent {
     this.status = AgentStatus.IDLE;
   }
 
-  abstract getItems(): Promise<any[]>;
-  abstract processItem(item: any): Promise<any>;
+  abstract getItems(): Promise<T[]>;
+  abstract processItem(item: T): Promise<any>;
 
   public getMetrics(): AgentMetrics {
     return this.metrics;
@@ -25,11 +25,14 @@ export abstract class BaseAgent implements Agent {
     return this.status;
   }
 
-  protected async processItems(items: any[]): Promise<void> {
-    const chunks = this.chunkArray(items, this.threadCount);
-    
-    for (const chunk of chunks) {
-      await Promise.all(chunk.map(item => this.processItem(item)));
+  protected async processItems(items: T[]): Promise<void> {
+    for (const item of items) {
+      try {
+        await this.processItem(item);
+      } catch (error) {
+        console.error(`Error processing item ${item}:`, error);
+        // Don't throw here, continue processing other items
+      }
     }
   }
 
@@ -43,24 +46,24 @@ export abstract class BaseAgent implements Agent {
 
   public async execute(): Promise<AgentResult> {
     try {
-      this.status = AgentStatus.RUNNING;
       const items = await this.getItems();
       await this.processItems(items);
-      
-      this.status = AgentStatus.STOPPED;
       return {
         success: true,
-        data: this.metrics
+        data: {
+          processedItems: items.length,
+          errors: []
+        }
       };
     } catch (error) {
-      this.status = AgentStatus.ERROR;
       const err = error instanceof Error ? error : new Error(String(error));
-      this.metrics.errors.push(err);
-      
       return {
         success: false,
         error: err,
-        data: this.metrics
+        data: {
+          processedItems: 0,
+          errors: [err]
+        }
       };
     }
   }

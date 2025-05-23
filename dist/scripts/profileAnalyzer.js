@@ -118,4 +118,3 @@ if (!username) {
 analyzeProfile(username)
     .then(() => console.log('Analysis completed'))
     .catch(error => console.error('Analysis failed:', error));
-//# sourceMappingURL=profileAnalyzer.js.map

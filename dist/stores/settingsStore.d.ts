@@ -37,3 +37,4 @@ export declare const useSettingsStore: import("zustand").UseBoundStore<Omit<impo
     };
 }>;
 export {};
+//# sourceMappingURL=settingsStore.d.ts.map

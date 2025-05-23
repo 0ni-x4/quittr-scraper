@@ -101,4 +101,3 @@ class WorkerManager {
     }
 }
 exports.WorkerManager = WorkerManager;
-//# sourceMappingURL=workerManager.js.map
