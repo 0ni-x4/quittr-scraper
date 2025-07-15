@@ -57,6 +57,23 @@ let agentLogs = {
     evaluator: [],
     outreach: []
 };
+// Helper function to save scraped data to file
+async function saveScrapedDataToFile(data) {
+    try {
+        const resultsDir = path.join(process.cwd(), 'results');
+        if (!fs.existsSync(resultsDir)) {
+            fs.mkdirSync(resultsDir, { recursive: true });
+        }
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `scraped-profiles-${timestamp}.json`;
+        const filepath = path.join(resultsDir, filename);
+        fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
+        console.log(`Scraped data saved to: ${filepath}`);
+    }
+    catch (error) {
+        console.error('Error saving scraped data:', error);
+    }
+}
 function createWindow() {
     mainWindow = new electron_1.BrowserWindow({
         height: 800,
@@ -170,8 +187,11 @@ electron_1.ipcMain.handle('start-scraper', async (_event, referenceAccount) => {
         await scraperAgent.initBrowser();
         await scraperAgent.setReferenceAccount(referenceAccount);
         const result = await scraperAgent.execute();
-        const items = await scraperAgent.getItems();
-        scrapedProfiles = items;
+        // Get the actual scraped data
+        const scrapedData = scraperAgent.getScrapedData();
+        scrapedProfiles = scrapedData;
+        // Save to file
+        await saveScrapedDataToFile(scrapedData);
         mainWindow?.webContents.send('scraped-profiles-update', scrapedProfiles);
         return { success: true, data: result };
     }
@@ -201,9 +221,9 @@ electron_1.ipcMain.handle('start-evaluator', async (_event, profiles) => {
             originalLog(...args);
         };
         // Process profiles for evaluation
-        for (const profile of profiles) {
-            // Add profile to evaluator queue
-            // This would need to be implemented based on your EvaluatorAgent structure
+        for (const _ of profiles) {
+            // Process profiles without using the variable if we don't need it
+            // Add processing logic here when needed
         }
         const result = await evaluatorAgent.execute();
         // Get evaluated results and update
@@ -221,6 +241,13 @@ electron_1.ipcMain.handle('start-evaluator', async (_event, profiles) => {
 electron_1.ipcMain.handle('stop-agents', async () => {
     try {
         if (scraperAgent) {
+            // Get scraped data before stopping
+            const scrapedData = scraperAgent.getScrapedData();
+            if (scrapedData.length > 0) {
+                scrapedProfiles = scrapedData;
+                await saveScrapedDataToFile(scrapedData);
+                mainWindow?.webContents.send('scraped-profiles-update', scrapedProfiles);
+            }
             await scraperAgent.stop();
             scraperAgent = null;
         }

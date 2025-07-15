@@ -51,6 +51,8 @@ export class MasterAgent {
       return {
         success: true,
         data: {
+          processedItems: scraperResult.data?.processedItems || 0,
+          errors: scraperResult.data?.errors || [],
           scraperMetrics: scraperResult.data,
           evaluatorMetrics: evaluatorResult.data,
           outreachMetrics: outreachResult.data

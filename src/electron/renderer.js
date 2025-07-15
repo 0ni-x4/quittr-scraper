@@ -163,21 +163,18 @@ function updateRecentActivity() {
 
 // Table updates
 function updateScrapedTable() {
-    const tbody = document.getElementById('scraped-tbody');
+    const tbody = document.getElementById('scraped-profiles');
     
     if (scrapedProfiles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #718096;">No scraped profiles yet</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #718096;">No scraped profiles yet</td></tr>';
         return;
     }
 
     tbody.innerHTML = scrapedProfiles.map(profile => `
         <tr>
             <td>${profile.username}</td>
-            <td><span class="status-badge status-active">${profile.platform}</span></td>
-            <td><span class="status-badge ${profile.isReferenceAccount ? 'status-active' : 'status-completed'}">
-                ${profile.isReferenceAccount ? 'Reference' : 'Scraped'}
-            </span></td>
-            <td>${new Date().toLocaleDateString()}</td>
+            <td>${profile.metadata?.followers || '0'}</td>
+            <td><span class="status-badge status-completed">Scraped</span></td>
             <td>
                 <button class="btn btn-primary" onclick="viewProfile('${profile.username}')">View</button>
             </td>
@@ -292,6 +289,10 @@ async function stopAgents() {
         if (result.success) {
             activeAgents = 0;
             updateDashboardStats();
+            
+            // Refresh scraped data after stopping
+            await refreshScrapedData();
+            
             showNotification('All agents stopped successfully!', 'success');
         } else {
             showNotification(`Error stopping agents: ${result.error}`, 'error');
@@ -363,7 +364,11 @@ async function refreshEvaluatedData() {
 function viewProfile(username) {
     const profile = scrapedProfiles.find(p => p.username === username);
     if (profile) {
-        alert(`Profile: ${username}\nPlatform: ${profile.platform}\nKeywords: ${profile.keywords.join(', ')}`);
+        const followers = profile.metadata?.followers || '0';
+        const suggestedAccounts = profile.metadata?.suggested_accounts || [];
+        const bio = profile.content || 'No bio available';
+        
+        alert(`Profile: ${username}\nPlatform: ${profile.platform}\nFollowers: ${followers}\nBio: ${bio}\nSuggested Accounts: ${suggestedAccounts.length} found`);
     }
 }
 

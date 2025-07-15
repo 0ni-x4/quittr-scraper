@@ -51,7 +51,7 @@ async function runScraperTest() {
   await scraper.setReferenceAccount(referenceAccount);
   const result = await scraper.execute();
 
-  if (result.success) {
+  if (result.success && result.data) {
     console.log('\nScraping completed successfully!');
     console.log(`Processed ${result.data.processedItems} profiles`);
     

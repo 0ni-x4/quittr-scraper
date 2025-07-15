@@ -1,7 +1,6 @@
 import { chromium, Page } from 'playwright';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import * as fs from 'fs';
 import lowdb from 'lowdb';
 import FileSync from 'lowdb/adapters/FileSync';
 

@@ -1,6 +1,5 @@
 import { chromium, Page } from 'playwright';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
 import { evaluateProfile } from '../evaluator/gpt4Evaluator';
 
 dotenv.config();

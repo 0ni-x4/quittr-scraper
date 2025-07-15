@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #000000;
             color: #ffffff;
             overflow: hidden;
@@ -25,38 +25,43 @@
 
         .sidebar {
             width: 250px;
-            background: #000000;
+            background: #111111;
             padding: 20px;
-            border-right: 1px solid #a1a1aa;
+            border-right: 1px solid #222222;
         }
 
         .sidebar h2 {
             color: #ffffff;
             margin-bottom: 30px;
             font-size: 1.5rem;
-            font-weight: 400;
+            font-weight: 500;
+            opacity: 0.9;
         }
 
         .nav-item {
             padding: 12px 16px;
-            margin: 2px 0;
+            margin: 8px 0;
             cursor: pointer;
             transition: all 0.2s ease;
-            background: #000000;
-            border: 1px solid #a1a1aa;
+            background: #111111;
+            border: 1px solid #222222;
             color: #ffffff;
-            border-radius: 4px;
+            border-radius: 12px;
+            font-weight: 500;
+            opacity: 0.8;
         }
 
         .nav-item:hover {
-            background: #ef4444;
-            color: #ffffff;
+            background: #222222;
+            border-color: #333333;
+            opacity: 1;
         }
 
         .nav-item.active {
-            background: #dc2626;
+            background: #222222;
             color: #ffffff;
-            border-color: #dc2626;
+            border-color: #333333;
+            opacity: 1;
         }
 
         .main-content {
@@ -76,12 +81,13 @@
         }
 
         .card {
-            background: #1a1a1a;
+            background: #181818;
             padding: 24px;
             margin-bottom: 20px;
-            border: 1px solid #a1a1aa;
+            border: 1px solid #222222;
             color: #ffffff;
-            border-radius: 6px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .card h3 {
@@ -89,6 +95,7 @@
             margin-bottom: 16px;
             font-size: 1.4rem;
             font-weight: 500;
+            opacity: 0.9;
         }
 
         .form-group {
@@ -100,148 +107,157 @@
             margin-bottom: 8px;
             font-weight: 500;
             color: #ffffff;
+            opacity: 0.8;
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
             padding: 12px;
-            border: 1px solid #a1a1aa;
+            border: 1px solid #333333;
             font-size: 14px;
-            transition: border-color 0.2s ease;
-            background: #2a2a2a;
+            transition: all 0.2s ease;
+            background: #222222;
             color: #ffffff;
-            border-radius: 4px;
+            border-radius: 12px;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #dc2626;
+            border-color: #444444;
+            background: #282828;
         }
 
         .form-group input::placeholder {
-            color: #a1a1aa;
+            color: #666666;
         }
 
         .btn {
             padding: 12px 24px;
-            border: 1px solid #a1a1aa;
+            border: 1px solid #333333;
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s ease;
             margin: 5px;
-            background: #2a2a2a;
+            background: #222222;
             color: #ffffff;
-            border-radius: 4px;
+            border-radius: 12px;
+            opacity: 0.9;
+        }
+
+        .btn:hover {
+            background: #282828;
+            border-color: #444444;
+            opacity: 1;
         }
 
         .btn-primary {
-            background: #000000;
+            background: #181818;
             color: #ffffff;
-            border-color: #000000;
+            border-color: #333333;
         }
 
         .btn-primary:hover {
-            background: #dc2626;
-            border-color: #dc2626;
+            background: #222222;
+            border-color: #444444;
         }
 
         .btn-success {
-            background: #2a2a2a;
+            background: #181818;
             color: #ffffff;
-            border-color: #a1a1aa;
+            border-color: #333333;
         }
 
         .btn-success:hover {
-            background: #dc2626;
-            color: #ffffff;
-            border-color: #dc2626;
+            background: #222222;
+            border-color: #444444;
         }
 
         .btn-danger {
-            background: #dc2626;
+            background: #181818;
             color: #ffffff;
-            border-color: #dc2626;
+            border-color: #333333;
         }
 
         .btn-danger:hover {
-            background: #ef4444;
-            border-color: #ef4444;
+            background: #222222;
+            border-color: #444444;
         }
 
         .logs-container {
-            background: #000000;
+            background: #181818;
             color: #ffffff;
             padding: 16px;
             height: 300px;
             overflow-y: auto;
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
             font-size: 12px;
             line-height: 1.4;
-            border: 1px solid #a1a1aa;
-            border-radius: 4px;
+            border: 1px solid #222222;
+            border-radius: 12px;
         }
 
         .log-entry {
             margin-bottom: 4px;
+            opacity: 0.8;
         }
 
         .table-container {
             overflow-x: auto;
             margin-top: 20px;
+            border-radius: 12px;
+            border: 1px solid #222222;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            background: #1a1a1a;
-            border: 1px solid #a1a1aa;
-            border-radius: 6px;
-            overflow: hidden;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #181818;
         }
 
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #a1a1aa;
+            border-bottom: 1px solid #222222;
         }
 
         th {
-            background: #000000;
+            background: #222222;
             font-weight: 500;
             color: #ffffff;
+            opacity: 0.9;
         }
 
         tr:hover {
-            background: #2a2a2a;
+            background: #222222;
         }
 
         .status-badge {
-            padding: 4px 8px;
+            padding: 6px 12px;
             font-size: 12px;
             font-weight: 500;
-            border: 1px solid #a1a1aa;
-            border-radius: 3px;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            background: #181818;
+            color: #ffffff;
         }
 
         .status-active {
-            background: #1a1a1a;
-            color: #dc2626;
-            border-color: #dc2626;
+            border-color: #333333;
+            background: #222222;
         }
 
         .status-pending {
-            background: #1a1a1a;
-            color: #ffffff;
-            border-color: #a1a1aa;
+            border-color: #333333;
+            background: #181818;
         }
 
         .status-completed {
-            background: #000000;
-            color: #ffffff;
-            border-color: #000000;
+            border-color: #333333;
+            background: #222222;
         }
 
         .stats-grid {
@@ -252,35 +268,70 @@
         }
 
         .stat-card {
-            background: #1a1a1a;
-            padding: 20px;
+            background: #181818;
+            padding: 24px;
             text-align: center;
-            border: 1px solid #a1a1aa;
-            border-radius: 6px;
+            border: 1px solid #222222;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: #333333;
         }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: bold;
-            color: #dc2626;
+            color: #ffffff;
+            margin-bottom: 8px;
+            line-height: 1;
         }
 
         .stat-label {
             color: #ffffff;
-            margin-top: 8px;
-            font-weight: 400;
+            opacity: 0.7;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 20px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
-        .controls input {
+        .controls input[type="text"] {
             flex: 1;
-            min-width: 200px;
+            min-width: 250px;
+            padding: 12px 16px;
+            font-size: 14px;
+            background: #181818;
+            border: 1px solid #333333;
+            color: #ffffff;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .controls input[type="text"]:hover {
+            border-color: #444444;
+            background: #1d1d1d;
+        }
+
+        .controls input[type="text"]:focus {
+            outline: none;
+            border-color: #555555;
+            background: #222222;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        .controls input[type="text"]::placeholder {
+            color: #666666;
+            opacity: 0.8;
         }
 
         /* Range input styling */
@@ -288,7 +339,7 @@
             -webkit-appearance: none;
             appearance: none;
             height: 4px;
-            background: #a1a1aa;
+            background: #333333;
             outline: none;
             border-radius: 2px;
         }
@@ -298,31 +349,53 @@
             appearance: none;
             width: 16px;
             height: 16px;
-            background: #dc2626;
+            background: #ffffff;
             cursor: pointer;
             border-radius: 50%;
+            border: 2px solid #333333;
         }
 
         input[type="range"]::-moz-range-thumb {
             width: 16px;
             height: 16px;
-            background: #dc2626;
+            background: #ffffff;
             cursor: pointer;
-            border: none;
+            border: 2px solid #333333;
             border-radius: 50%;
         }
 
         #cpu-value {
             margin-left: 10px;
             font-weight: 500;
-            color: #dc2626;
+            color: #ffffff;
+            opacity: 0.9;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #181818;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444444;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <h2>AI Agent</h2>
+            <h2>QUITTR Scraper</h2>
             <div class="nav-item active" data-view="dashboard">
                 Dashboard
             </div>
@@ -417,25 +490,18 @@
             <div id="scraped" class="view">
                 <div class="card">
                     <h3>Scraped Profiles</h3>
-                    <div class="controls">
-                        <button class="btn btn-success" onclick="exportCSV('scraped')">Export as CSV</button>
-                        <button class="btn btn-primary" onclick="refreshScrapedData()">Refresh Data</button>
-                    </div>
                     <div class="table-container">
-                        <table id="scraped-table">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Username</th>
-                                    <th>Platform</th>
+                                    <th>Followers</th>
                                     <th>Status</th>
-                                    <th>Timestamp</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="scraped-tbody">
-                                <tr>
-                                    <td colspan="5" style="text-align: center; color: #a1a1aa;">No scraped profiles yet</td>
-                                </tr>
+                            <tbody id="scraped-profiles">
+                                <!-- Profiles will be populated here -->
                             </tbody>
                         </table>
                     </div>
@@ -446,26 +512,18 @@
             <div id="evaluated" class="view">
                 <div class="card">
                     <h3>Evaluated Profiles</h3>
-                    <div class="controls">
-                        <button class="btn btn-success" onclick="exportCSV('evaluated')">Export as CSV</button>
-                        <button class="btn btn-primary" onclick="refreshEvaluatedData()">Refresh Data</button>
-                    </div>
                     <div class="table-container">
-                        <table id="evaluated-table">
+                        <table>
                             <thead>
                                 <tr>
                                     <th>Username</th>
-                                    <th>Platform</th>
                                     <th>Score</th>
                                     <th>Status</th>
-                                    <th>Evaluation Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="evaluated-tbody">
-                                <tr>
-                                    <td colspan="6" style="text-align: center; color: #a1a1aa;">No evaluated profiles yet</td>
-                                </tr>
+                            <tbody id="evaluated-profiles">
+                                <!-- Profiles will be populated here -->
                             </tbody>
                         </table>
                     </div>
@@ -475,21 +533,9 @@
             <!-- Logs View -->
             <div id="logs" class="view">
                 <div class="card">
-                    <h3>Scraper Logs</h3>
-                    <div class="logs-container" id="scraper-logs">
-                        <div class="log-entry">Scraper agent ready...</div>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>Evaluator Logs</h3>
-                    <div class="logs-container" id="evaluator-logs">
-                        <div class="log-entry">Evaluator agent ready...</div>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>Outreach Logs</h3>
-                    <div class="logs-container" id="outreach-logs">
-                        <div class="log-entry">Outreach agent ready...</div>
+                    <h3>Agent Logs</h3>
+                    <div class="logs-container" id="agent-logs">
+                        <!-- Logs will be populated here -->
                     </div>
                 </div>
             </div>

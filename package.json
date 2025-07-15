@@ -18,6 +18,7 @@
     "test": "npx ts-node src/test-scraper.ts",
     "electron": "concurrently \"npm run build\" \"wait-on dist/electron/main.js && electron .\"",
     "electron-dev": "concurrently \"tsc -p tsconfig.electron.json -w\" \"wait-on dist/electron/main.js && electron .\"",
+    "ed": "concurrently \"tsc -p tsconfig.electron.json -w\" \"wait-on dist/electron/main.js && electron .\"",
     "dist": "npm run build && electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },

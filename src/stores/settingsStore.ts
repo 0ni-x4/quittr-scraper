@@ -5,6 +5,7 @@ interface Settings {
   openaiKey: string;
   maxCpuUsage: number;
   parallelAgents: number;
+  showDebugLogs: boolean;
   instagramUsername: string;
   instagramPassword: string;
 }
@@ -14,30 +15,21 @@ interface SettingsStore {
   updateSettings: (settings: Settings) => void;
 }
 
-const defaultSettings: Settings = {
-  openaiKey: '',
-  maxCpuUsage: 50,
-  parallelAgents: 2,
-  instagramUsername: '',
-  instagramPassword: ''
-};
-
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
-      settings: defaultSettings,
+      settings: {
+        openaiKey: '',
+        maxCpuUsage: 50,
+        parallelAgents: 1,
+        showDebugLogs: false,
+        instagramUsername: '',
+        instagramPassword: '',
+      },
       updateSettings: (newSettings) => set({ settings: newSettings }),
     }),
     {
-      name: 'ai-influencer-settings',
-      partialize: (state) => ({
-        settings: {
-          ...state.settings,
-          // Don't persist sensitive data to local storage
-          openaiKey: '',
-          instagramPassword: ''
-        }
-      })
+      name: 'settings-storage',
     }
   )
 ); 

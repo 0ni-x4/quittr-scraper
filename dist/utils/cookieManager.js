@@ -36,14 +36,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CookieManager = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const settingsStore_1 = require("@/stores/settingsStore");
 class CookieManager {
     constructor() {
         this.MAX_DMS_PER_DAY = 50;
+        this.cookies = [];
         this.cookiesDir = path.join(process.cwd(), 'cookies');
         this.accountStatesFile = path.join(process.cwd(), 'accountStates.json');
         this.accountStates = new Map();
         this.initializeDirectories();
         this.loadAccountStates();
+    }
+    static getInstance() {
+        if (!CookieManager.instance) {
+            CookieManager.instance = new CookieManager();
+        }
+        return CookieManager.instance;
     }
     initializeDirectories() {
         if (!fs.existsSync(this.cookiesDir)) {
@@ -88,6 +96,69 @@ class CookieManager {
             console.error(`Error loading cookies for ${username}:`, error);
         }
         return false;
+    }
+    async initializeCookies() {
+        const settings = settingsStore_1.useSettingsStore.getState().settings;
+        // Set up default cookies
+        this.cookies = [
+            {
+                name: 'csrftoken',
+                value: settings.instagramCsrfToken || '',
+                domain: '.instagram.com',
+                path: '/',
+                expires: Math.floor(Date.now() / 1000) + (2 * 365 * 24 * 60 * 60), // 2 years
+                httpOnly: false,
+                secure: true,
+                sameSite: 'Lax'
+            },
+            {
+                name: 'sessionid',
+                value: settings.instagramSessionId || '',
+                domain: '.instagram.com',
+                path: '/',
+                expires: Math.floor(Date.now() / 1000) + (2 * 365 * 24 * 60 * 60), // 2 years
+                httpOnly: true,
+                secure: true,
+                sameSite: 'Lax'
+            }
+        ];
+        this.csrfToken = settings.instagramCsrfToken;
+    }
+    getCookies() {
+        return this.cookies;
+    }
+    getCsrfToken() {
+        return this.csrfToken;
+    }
+    async verifyLoginStatus() {
+        try {
+            // Check if we have valid cookies
+            if (!this.cookies.some(cookie => cookie.name === 'sessionid' && cookie.value)) {
+                console.log('Login status: No valid session cookie found');
+                return false;
+            }
+            // You could add additional verification here, like making a test request
+            // to Instagram's API to verify the session is still valid
+            return true;
+        }
+        catch (error) {
+            console.error('Error verifying login status:', error);
+            return false;
+        }
+    }
+    async updateCookies(newCookies) {
+        this.cookies = newCookies;
+        // Update CSRF token if present in new cookies
+        const csrfCookie = newCookies.find(cookie => cookie.name === 'csrftoken');
+        if (csrfCookie) {
+            this.csrfToken = csrfCookie.value;
+        }
+        // Update settings store with new values
+        const settings = settingsStore_1.useSettingsStore.getState();
+        settings.updateSettings({
+            instagramCsrfToken: this.csrfToken || '',
+            instagramSessionId: newCookies.find(cookie => cookie.name === 'sessionid')?.value || ''
+        });
     }
     getAvailableAccount() {
         const now = new Date();
@@ -135,3 +206,4 @@ class CookieManager {
     }
 }
 exports.CookieManager = CookieManager;
+//# sourceMappingURL=cookieManager.js.map
