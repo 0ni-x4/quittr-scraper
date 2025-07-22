@@ -5,6 +5,7 @@ export interface ScrapedData {
   metadata: Record<string, any>;
   timestamp: Date;
   url?: string;
+  reels?: Array<{ url: string; views: string }>;
 }
 
 export interface ScraperTarget {
@@ -18,6 +19,7 @@ export interface ScraperTarget {
 export interface AgentMetrics {
   processedItems: number;
   errors: Error[];
+  scrapedAccounts?: Record<string, any>;
 }
 
 export interface AgentResult {

@@ -128,7 +128,7 @@ async function searchAndScrapeProfiles() {
       // Visit each profile and extract data
       for (const link of profileLinks) {
         try {
-          await page.goto(link);
+          await page.goto(link.replace(/\/$/, '/reels'));
           const profileData = await extractProfileData(page, keyword);
           
           if (profileData) {

@@ -166,7 +166,7 @@ export class DMAgent {
   private async sendDM(username: string, message: string): Promise<boolean> {
     try {
       // Navigate to user's profile
-      await this.page.goto(`https://www.instagram.com/${username}/`);
+      await this.page.goto(`https://www.instagram.com/${username}/reels`);
       
       // Click message button
       await this.page.waitForSelector('button:has-text("Message")');
@@ -208,7 +208,7 @@ export class DMAgent {
 
     try {
       // Evaluate profile
-      await this.page.goto(`https://www.instagram.com/${username}/`);
+      await this.page.goto(`https://www.instagram.com/${username}/reels`);
       
       // Extract profile data using the existing analyzer code
       const profileData = await this.extractProfileData(this.page, username);

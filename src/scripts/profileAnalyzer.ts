@@ -66,7 +66,7 @@ async function analyzeProfile(username: string) {
   try {
     // Go directly to profile
     console.log(`Analyzing profile: ${username}...`);
-    await page.goto(`https://www.instagram.com/${username}/`);
+    await page.goto(`https://www.instagram.com/${username}/reels`);
     
     // Wait for content to load
     await page.waitForSelector('header', { timeout: 10000 });

@@ -163,24 +163,128 @@ function updateRecentActivity() {
 
 // Table updates
 function updateScrapedTable() {
-    const tbody = document.getElementById('scraped-profiles');
+    const container = document.getElementById('scraped-profiles');
+    const searchQuery = document.getElementById('profile-search')?.value.toLowerCase() || '';
+    const followerFilter = document.getElementById('follower-filter')?.value || 'all';
+    const reelsFilter = document.getElementById('reels-filter')?.value || 'all';
     
     if (scrapedProfiles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #718096;">No scraped profiles yet</td></tr>';
+        container.innerHTML = `
+            <div class="empty-state" style="text-align: center; padding: 2rem; color: #718096;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 48px; height: 48px; margin: 0 auto 1rem;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <p style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">No scraped profiles yet</p>
+                <p style="font-size: 0.875rem;">Start the scraper to begin collecting profiles</p>
+            </div>
+        `;
         return;
     }
 
-    tbody.innerHTML = scrapedProfiles.map(profile => `
-        <tr>
-            <td>${profile.username}</td>
-            <td>${profile.metadata?.followers || '0'}</td>
-            <td><span class="status-badge status-completed">Scraped</span></td>
-            <td>
-                <button class="btn btn-primary" onclick="viewProfile('${profile.username}')">View</button>
-            </td>
-        </tr>
-    `).join('');
+    // Filter profiles
+    const filteredProfiles = scrapedProfiles.filter(profile => {
+        const username = profile.username.toLowerCase();
+        const followers = parseInt(profile.metadata?.followers?.replace(/,/g, '') || '0');
+        const hasReels = Array.isArray(profile.reels) && profile.reels.length > 0;
+
+        // Apply search filter
+        if (searchQuery && !username.includes(searchQuery)) {
+            return false;
+        }
+
+        // Apply followers filter
+        if (followerFilter !== 'all') {
+            const minFollowers = parseInt(followerFilter);
+            if (followers < minFollowers) {
+                return false;
+            }
+        }
+
+        // Apply reels filter
+        if (reelsFilter === 'with-reels' && !hasReels) {
+            return false;
+        }
+        if (reelsFilter === 'no-reels' && hasReels) {
+            return false;
+        }
+
+        return true;
+    });
+
+    container.innerHTML = filteredProfiles.map(profile => {
+        const followers = profile.metadata?.followers || '0';
+        const following = profile.metadata?.following || '0';
+        const bio = profile.content || 'No bio available';
+        const reels = Array.isArray(profile.reels) ? profile.reels : [];
+
+        return `
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-username">@${profile.username}</div>
+                </div>
+                
+                <div class="profile-metrics">
+                    <div class="metric">
+                        <div class="metric-value">${followers}</div>
+                        <div class="metric-label">Followers</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${following}</div>
+                        <div class="metric-label">Following</div>
+                    </div>
+                </div>
+
+                <div class="profile-bio">${bio}</div>
+
+                <div class="reels-section">
+                    <div class="reels-header">
+                        <div class="reels-title">Last 30 reels</div>
+                        <div class="reels-count">${reels.length} found</div>
+                    </div>
+                    <div class="reels-list">
+                        ${reels.map(reel => `
+                            <div class="reel-item">
+                                <a href="${reel.url}" target="_blank" class="reel-link">View Reel</a>
+                                <span class="reel-views">${reel.views || 'N/A'} views</span>
+                            </div>
+                        `).join('')}
+                        ${reels.length === 0 ? '<div style="color: #718096; font-size: 0.875rem; text-align: center; padding: 1rem;">No reels found</div>' : ''}
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button class="action-button view-button" onclick="viewProfile('${profile.username}')">View Details</button>
+                    <button class="action-button evaluate-button" onclick="evaluateProfile('${profile.username}')">Evaluate</button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
+
+// Add event listeners for filters
+document.addEventListener('DOMContentLoaded', () => {
+    const profileSearch = document.getElementById('profile-search');
+    const followerFilter = document.getElementById('follower-filter');
+    const reelsFilter = document.getElementById('reels-filter');
+
+    if (profileSearch) {
+        profileSearch.addEventListener('input', () => {
+            updateScrapedTable();
+        });
+    }
+
+    if (followerFilter) {
+        followerFilter.addEventListener('change', () => {
+            updateScrapedTable();
+        });
+    }
+
+    if (reelsFilter) {
+        reelsFilter.addEventListener('change', () => {
+            updateScrapedTable();
+        });
+    }
+});
 
 function updateEvaluatedTable() {
     const tbody = document.getElementById('evaluated-tbody');
@@ -365,10 +469,108 @@ function viewProfile(username) {
     const profile = scrapedProfiles.find(p => p.username === username);
     if (profile) {
         const followers = profile.metadata?.followers || '0';
+        const following = profile.metadata?.following || '0';
         const suggestedAccounts = profile.metadata?.suggested_accounts || [];
         const bio = profile.content || 'No bio available';
+        const reels = Array.isArray(profile.reels) ? profile.reels : [];
         
-        alert(`Profile: ${username}\nPlatform: ${profile.platform}\nFollowers: ${followers}\nBio: ${bio}\nSuggested Accounts: ${suggestedAccounts.length} found`);
+        const modalContent = `
+            <div style="padding: 1.5rem;">
+                <h2 style="margin-bottom: 1rem; font-size: 1.5rem; font-weight: 600;">@${profile.username}</h2>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Profile Info</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; background: #f7fafc; padding: 1rem; border-radius: 0.5rem;">
+                        <div>
+                            <div style="font-weight: 600;">${followers}</div>
+                            <div style="color: #718096; font-size: 0.875rem;">Followers</div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">${following}</div>
+                            <div style="color: #718096; font-size: 0.875rem;">Following</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Bio</h3>
+                    <p style="color: #4a5568; white-space: pre-wrap;">${bio}</p>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Reels (${reels.length})</h3>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        ${reels.map(reel => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #e2e8f0;">
+                                <a href="${reel.url}" target="_blank" style="color: #4299e1; text-decoration: none;">View Reel</a>
+                                <span style="color: #718096;">${reel.views || 'N/A'} views</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;">Suggested Accounts (${suggestedAccounts.length})</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        ${suggestedAccounts.map(account => `
+                            <span style="background: #e2e8f0; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem;">@${account}</span>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Create and show modal
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        `;
+
+        const modalDialog = document.createElement('div');
+        modalDialog.style.cssText = `
+            background: white;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        `;
+
+        const closeButton = document.createElement('button');
+        closeButton.innerHTML = '×';
+        closeButton.style.cssText = `
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #718096;
+        `;
+        closeButton.onclick = () => modal.remove();
+
+        modalDialog.innerHTML = modalContent;
+        modalDialog.appendChild(closeButton);
+        modal.appendChild(modalDialog);
+        document.body.appendChild(modal);
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
     }
 }
 

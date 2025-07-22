@@ -75,7 +75,8 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
                     suggested_accounts: accountData.suggested_accounts || [],
                     lastUpdated: new Date().toISOString()
                 },
-                timestamp: new Date()
+                timestamp: new Date(),
+                reels: accountData.reels || [] // This will now contain the actual reels data
             });
         }
         return scrapedData;
@@ -377,7 +378,7 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
         try {
             console.log(`Getting suggested accounts for ${username}...`);
             const page = await this.context.newPage();
-            await page.goto(`https://www.instagram.com/${username}/`, {
+            await page.goto(`https://www.instagram.com/${username}/reels`, {
                 waitUntil: 'domcontentloaded',
                 timeout: 15000
             });
@@ -404,6 +405,13 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
                     followers_count: accountInfo.followers_count,
                     suggested_accounts: []
                 };
+            }
+            // Use this page for scraping reels instead of creating a new one
+            try {
+                await this.scrapeInstagramProfile(username, page);
+            }
+            catch (error) {
+                console.error(`Error scraping reels for ${username}:`, error);
             }
             console.log('Looking for similar accounts...');
             const suggestedUsernames = [];
@@ -514,6 +522,7 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
             catch (error) {
                 console.log(`Error scraping suggested accounts: ${error}`);
             }
+            // Only close the page after we're completely done with it
             await page.close();
             return suggestedUsernames;
         }
@@ -522,19 +531,20 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
             return [];
         }
     }
-    async scrapeInstagramProfile(username) {
+    async scrapeInstagramProfile(username, page) {
+        console.log('[REELS SCRAPER] scrapeInstagramProfile called for', username);
         if (!this.mainPage || !this.isLoggedIn) {
             throw new Error('Browser not initialized or not logged in');
         }
         try {
-            const profileUrl = `https://www.instagram.com/${username}/`;
+            const profileUrl = `https://www.instagram.com/${username}/reels`;
             console.log(`Navigating to ${profileUrl}`);
-            await this.mainPage.goto(profileUrl, {
+            await page.goto(profileUrl, {
                 waitUntil: 'domcontentloaded',
                 timeout: this.timeoutMs
             });
             // Check if profile exists
-            const errorMessage = await this.mainPage.$('text="Sorry, this page isn\'t available."');
+            const errorMessage = await page.$('text="Sorry, this page isn\'t available."');
             if (errorMessage) {
                 console.log(`Profile ${username} does not exist or is private`);
                 return {
@@ -550,12 +560,12 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
                 };
             }
             // Get account info using the improved method
-            const accountInfo = await this.getAccountInfo(this.mainPage);
+            const accountInfo = await this.getAccountInfo(page);
             if (!accountInfo) {
                 throw new Error('Failed to get account info');
             }
             // Get follower count, following count, and post count
-            const metadata = await this.mainPage.evaluate(() => {
+            const metadata = await page.evaluate(() => {
                 const metricItems = document.querySelectorAll('header section ul li');
                 const metrics = {};
                 metricItems.forEach((item, index) => {
@@ -569,58 +579,111 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
                 });
                 return metrics;
             });
-            // Get recent posts data
-            const recentPosts = await this.mainPage.evaluate(() => {
-                const posts = Array.from(document.querySelectorAll('article')).slice(0, 12);
-                return posts.map(post => {
-                    const caption = post.querySelector('h1')?.textContent ||
-                        post.querySelector('div[role="menuitem"]')?.textContent || '';
-                    const likes = post.querySelector('section span')?.textContent || '0';
-                    const timestamp = post.querySelector('time')?.getAttribute('datetime') || '';
-                    const isVideo = !!post.querySelector('video');
-                    const isCarousel = !!post.querySelector('ul[role="tablist"]');
-                    return {
-                        caption: caption.trim(),
-                        likes: likes.replace(/[^0-9]/g, ''),
-                        timestamp,
-                        type: isVideo ? 'video' : isCarousel ? 'carousel' : 'image'
+            // Extract reels data
+            console.log('[REELS SCRAPER] Starting reels extraction');
+            let reels = { results: [], logs: [] };
+            try {
+                // Add debug logging to browser context
+                await page.evaluate(() => {
+                    // @ts-ignore
+                    window._scraperLogs = [];
+                    const log = (...args) => {
+                        // @ts-ignore
+                        window._scraperLogs.push(args);
                     };
+                    log('Starting reels extraction');
                 });
-            });
+                // Scroll to load more reels
+                await page.evaluate(async () => {
+                    for (let i = 0; i < 5; i++) {
+                        window.scrollTo(0, document.body.scrollHeight);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                });
+                // Extract reels
+                reels = await page.evaluate(() => {
+                    const log = (...args) => {
+                        // @ts-ignore
+                        window._scraperLogs.push(args);
+                    };
+                    log('Starting reels extraction in evaluate');
+                    // Find all <a> tags that might be reels
+                    const anchors = Array.from(document.querySelectorAll('a'));
+                    log('Found anchors:', anchors.length);
+                    // Filter for reel URLs
+                    const reelUrls = anchors
+                        .map(a => a.href)
+                        .filter(href => href && href.includes('/reel/'));
+                    log('Found reel URLs:', reelUrls);
+                    // Remove duplicates and take only the latest 30
+                    const uniqueReels = [...new Set(reelUrls)].slice(0, 30);
+                    log('Latest 30 unique reels:', uniqueReels.length);
+                    const results = uniqueReels.map(url => {
+                        const anchor = anchors.find(a => a.href === url);
+                        let views = '';
+                        let foundSpan = null;
+                        if (anchor) {
+                            foundSpan = anchor.querySelector('span.xdj266r.x14z9mp.xat24cr.x1lziwak.xexx8yu.xyri2b.x18d9i69.x1c1uobl.x1hl2dhg.x16tdsg8.x1vvkbs');
+                            if (!foundSpan) {
+                                foundSpan = anchor.querySelector('span');
+                            }
+                            if (foundSpan) {
+                                views = foundSpan.textContent || '';
+                            }
+                        }
+                        log('Reel:', url, 'Views:', views, 'Found span:', !!foundSpan);
+                        return { url, views };
+                    });
+                    // @ts-ignore
+                    return { results, logs: window._scraperLogs };
+                });
+                console.log('[REELS SCRAPER] page.evaluate completed');
+            }
+            catch (err) {
+                console.error('[REELS SCRAPER] page.evaluate threw error:', err);
+                reels = { results: [], logs: [['EVALUATE ERROR', String(err)]] };
+            }
+            // Log the debug info to the Node console
+            if (reels && reels.logs) {
+                for (const entry of reels.logs) {
+                    console.log('[REELS SCRAPER]', ...entry);
+                }
+            }
+            else {
+                console.warn('[REELS SCRAPER] No logs returned from page.evaluate');
+            }
+            // Store reels data in scrapedAccounts
+            if (username in this.scrapedAccounts) {
+                this.scrapedAccounts[username].reels = reels.results;
+            }
+            else {
+                this.scrapedAccounts[username] = {
+                    depth: 0,
+                    followers_count: accountInfo.followers_count,
+                    suggested_accounts: [],
+                    reels: reels.results
+                };
+            }
             // Calculate engagement metrics
             const cleanNumber = (str) => parseInt(str.replace(/,/g, '')) || 0;
             const followers = accountInfo.followers_count;
             const posts = cleanNumber(metadata.posts || '0');
-            const totalLikes = recentPosts.reduce((sum, post) => sum + cleanNumber(post.likes), 0);
-            const avgLikes = recentPosts.length > 0 ? totalLikes / recentPosts.length : 0;
+            const totalLikes = 0;
+            const avgLikes = 0;
             const engagementRate = followers > 0 ? (avgLikes / followers) * 100 : 0;
-            // Extract hashtags from bio and recent posts
-            const hashtagRegex = /#[\w-]+/g;
-            const bioHashtags = (accountInfo.bio.match(hashtagRegex) || []).map((tag) => tag.slice(1));
-            const postHashtags = recentPosts
-                .map(post => post.caption.match(hashtagRegex) || [])
-                .flat()
-                .map(tag => tag.slice(1));
-            const uniqueHashtags = [...new Set([...bioHashtags, ...postHashtags])];
             return {
-                content: accountInfo.bio,
+                content: accountInfo.bio || '',
                 metadata: {
-                    ...metadata,
-                    name: accountInfo.name,
-                    website: accountInfo.website,
                     platform: 'instagram',
-                    followers: followers.toString(),
-                    posts: posts.toString(),
-                    engagement: engagementRate,
-                    avgLikes: avgLikes.toString(),
-                    recentPosts: recentPosts,
-                    hashtags: uniqueHashtags,
-                    lastUpdated: new Date().toISOString()
+                    followers: metadata.followers || '0',
+                    following: metadata.following || '0',
+                    posts: metadata.posts || '0',
+                    engagement: engagementRate
                 }
             };
         }
         catch (error) {
-            console.error(`Error scraping Instagram profile ${username}:`, error);
+            console.error(`Error scraping profile ${username}:`, error);
             throw error;
         }
     }
@@ -635,24 +698,36 @@ class ScraperAgent extends baseAgent_1.BaseAgent {
         this.accountsToProcess = [{ username, depth: 0 }];
     }
     async processItem(target) {
+        console.log('[REELS SCRAPER] processItem called for', target.username);
         try {
             // Initialize browser if not already initialized
             if (!this.browser || !this.isLoggedIn) {
                 await this.initBrowser();
             }
+            if (!this.mainPage || !this.context) {
+                throw new Error('Browser context not properly initialized');
+            }
             // Process accounts sequentially
             await this.processAccounts();
-            // Scrape the profile
-            console.log(`Scraping profile: ${target.username}`);
-            const scrapedData = await this.scrapeInstagramProfile(target.username);
-            const timestamp = new Date();
-            return {
-                username: target.username,
-                platform: target.platform,
-                content: scrapedData.content || '',
-                metadata: scrapedData.metadata || {},
-                timestamp
-            };
+            // Create a new page for scraping
+            const page = await this.context.newPage();
+            try {
+                // Scrape the profile
+                console.log(`Scraping profile: ${target.username}`);
+                const scrapedData = await this.scrapeInstagramProfile(target.username, page);
+                const timestamp = new Date();
+                return {
+                    username: target.username,
+                    platform: target.platform,
+                    content: scrapedData.content || '',
+                    metadata: scrapedData.metadata || {},
+                    timestamp
+                };
+            }
+            finally {
+                // Always close the page when done
+                await page.close();
+            }
         }
         catch (error) {
             console.error(`Error processing item ${target.username}:`, error);
